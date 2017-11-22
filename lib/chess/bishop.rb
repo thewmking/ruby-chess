@@ -1,4 +1,4 @@
 module Chess
-  class Bishop
+  class Bishop < Piece
   end
 end

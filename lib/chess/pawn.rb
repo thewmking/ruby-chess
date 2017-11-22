@@ -1,4 +1,4 @@
 module Chess
-  class Pawn
+  class Pawn < Piece
   end
 end

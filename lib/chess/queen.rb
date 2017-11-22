@@ -1,4 +1,4 @@
 module Chess
-  class Queen
+  class Queen < Piece
   end
 end

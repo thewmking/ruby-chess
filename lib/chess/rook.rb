@@ -1,4 +1,4 @@
 module Chess
-  class Rook
+  class Rook < Piece
   end
 end

@@ -1,4 +1,4 @@
 module Chess
-  class Knight
+  class Knight < Piece
   end
 end

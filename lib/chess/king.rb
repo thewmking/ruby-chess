@@ -1,4 +1,4 @@
 module Chess
-  class King
+  class King < Piece
   end
 end
