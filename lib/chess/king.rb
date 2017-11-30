@@ -1,5 +1,6 @@
 module Chess
   class King < Piece
+
     def initialize(color, position=nil)
       super(color)
       @position = position
@@ -8,6 +9,24 @@ module Chess
       else
         @symbol = "\u2654"
       end
+    end
+
+    def possible_moves
+      col = @position[0]
+      row = @position[1]
+
+      moves = []
+
+      moves << [col - 1, row] if (0..7).include?(col - 1)
+      moves << [col + 1, row] if (0..7).include?(col + 1)
+      moves << [col, row - 1] if (0..7).include?(row - 1)
+      moves << [col, row + 1] if (0..7).include?(row + 1)
+      moves << [col - 1, row - 1] if (0..7).include?(col - 1) && (0..7).include?(row - 1)
+      moves << [col - 1, row + 1] if (0..7).include?(col - 1) && (0..7).include?(row + 1)
+      moves << [col + 1, row + 1] if (0..7).include?(col + 1) && (0..7).include?(row + 1)
+      moves << [col + 1, row - 1] if (0..7).include?(col + 1) && (0..7).include?(row - 1)
+
+      moves
     end
   end
 end
