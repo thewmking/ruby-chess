@@ -15,6 +15,8 @@ module Chess
     end
 
     def formatted_grid
+      puts ""
+      puts "BLACK"
       puts "  a b c d e f g h"
       i = 8
       grid.each do |row|
@@ -22,6 +24,7 @@ module Chess
         i -= 1
       end
       puts "  a b c d e f g h"
+      puts "WHITE"
     end
 
     def init_pieces
@@ -60,6 +63,12 @@ module Chess
       set_cell(5, 6, Pawn.new("white", [5,6]))
       set_cell(6, 6, Pawn.new("white", [6,6]))
       set_cell(7, 6, Pawn.new("white", [7,6]))
+    end
+
+    def game_over
+      return :winner if winner?
+      return :draw if draw?
+      false
     end
 
     private

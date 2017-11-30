@@ -5,5 +5,9 @@ module Chess
       @color = color
       @position = position
     end
+
+    def name
+      self.class.name.to_s.downcase.gsub('chess::', '')
+    end
   end
 end
