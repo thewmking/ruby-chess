@@ -61,7 +61,7 @@ module Chess
       if (piece.color == @current_player.color) && (piece != nil) && (piece.possible_moves.include? dest) && ((dest_value == nil) || (dest_value.color != piece.color))
         message = "#{piece.color} #{piece.name} moved from #{move[0]} to #{move[1]}"
         if dest_value != nil
-          message = message + " and took #{dest_value.color} #{dest_value.name}"
+          message = message + " and captured #{dest_value.color} #{dest_value.name}"
         end
         @board.set_cell(dest[0], dest[1], piece.class.new(piece.color, [dest[0], dest[1]]))
         @board.set_cell(origin[0], origin[1], nil)
