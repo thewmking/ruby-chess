@@ -58,7 +58,7 @@ module Chess
       piece = @board.get_cell(origin[0],origin[1]).value
       dest_value = @board.get_cell(dest[0],dest[1]).value
       # if dest is in piece.possible_moves, set_cell
-      if (piece != nil) && (piece.possible_moves.include? dest) && ((dest_value == nil) || (dest_value.color != piece.color))
+      if (piece.color == @current_player.color) && (piece != nil) && (piece.possible_moves.include? dest) && ((dest_value == nil) || (dest_value.color != piece.color))
         message = "#{piece.color} #{piece.name} moved from #{move[0]} to #{move[1]}"
         if dest_value != nil
           message = message + " and took #{dest_value.color} #{dest_value.name}"
