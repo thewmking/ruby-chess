@@ -65,9 +65,7 @@ module Chess
         end
         @board.set_cell(dest[0], dest[1], piece.class.new(piece.color, [dest[0], dest[1]]))
         @board.set_cell(origin[0], origin[1], nil)
-        puts ""
-        puts "________________________"
-        puts ""
+        puts " \n________________________\n "
         puts message
       else
         puts "Not a valid move. Please try again."
