@@ -28,10 +28,8 @@ module Chess
     end
 
     def dest_path(origin, dest)
-      o_col, o_row = origin[0], origin[1]
-      d_col, d_row = dest[0], dest[1]
-      x = d_col - o_col
-      y = d_row - o_row
+      o_col, o_row, d_col, d_row = origin[0], origin[1], dest[0], dest[1]
+      x, y = d_col - o_col, d_row - o_row
       cells = []
 
       if x != 0
