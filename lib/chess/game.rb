@@ -57,14 +57,7 @@ module Chess
       dest = human_move_to_coordinate(move[1])
       piece = @board.get_cell(origin[0],origin[1]).value
       dest_value = @board.get_cell(dest[0],dest[1]).value
-      if (piece != nil)
-        dest_path = piece.dest_path(origin, dest)
-        path_values = []
-        dest_path&.each do |cell|
-          path_values << @board.get_cell(cell[0],cell[1]).value
-        end
-        path_values
-      end
+      path_values = get_path_values(piece,origin,dest)
       if (piece != nil) && (piece.color == @current_player.color) &&
          (piece.possible_moves.include? dest) && ((path_values.nil? || path_values.none?)) &&
          ((dest_value == nil) || (dest_value.color != piece.color))
@@ -79,6 +72,17 @@ module Chess
       else
         puts "Not a valid move. Please try again."
         move_flow
+      end
+    end
+
+    def get_path_values(piece,origin,dest)
+      if (piece != nil)
+        dest_path = piece.dest_path(origin, dest)
+        path_values = []
+        dest_path&.each do |cell|
+          path_values << @board.get_cell(cell[0],cell[1]).value
+        end
+        path_values
       end
     end
 

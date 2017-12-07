@@ -43,6 +43,8 @@ module Chess
           cells << [o_col + i, o_row + j] if (0..7).include?(o_col + i) && (0..7).include?(o_row + j)
           i += 1 if x > 0
           i -= 1 if x < 0
+          j += 1 if y > 0
+          j -= 1 if y < 0
         end
       elsif x != 0 && y == 0
         i = x.abs/x
