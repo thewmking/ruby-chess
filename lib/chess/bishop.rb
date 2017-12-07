@@ -26,5 +26,23 @@ module Chess
       end
       moves
     end
+
+    def dest_path(origin, dest)
+      o_col, o_row, d_col, d_row = origin[0], origin[1], dest[0], dest[1]
+      x,y = d_col - o_col, d_row - o_row
+      cells = []
+
+      if (x != 0 && y != 0) && (x.abs == y.abs)
+        i = x.abs/x
+        j = y.abs/y
+        (x.abs - 1).times do
+          cells << [o_col + i, o_row + j] if (0..7).include?(o_col + i) && (0..7).include?(o_row + j)
+          i += 1 if x > 0
+          i -= 1 if x < 0
+        end
+      end
+
+      cells
+    end
   end
 end
