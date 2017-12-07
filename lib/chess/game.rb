@@ -18,6 +18,8 @@ module Chess
     def get_move(move = gets.chomp.downcase)
       if move =~ /\A[abcdefgh]\d\s[abcdefgh]\d\z/
         move = move.split(' ')
+      elsif ["quit", "exit"].include? move
+        exit
       else
         puts "Please use valid coordinates. Like this: a3 b5"
         get_move(move = gets.chomp.downcase)
