@@ -1,10 +1,11 @@
 module Chess
   class Game
-    attr_reader :players, :board, :current_player, :other_player
+    attr_reader :players, :board, :current_player, :other_player, :move_list
     def initialize(players, board = Board.new)
       @players = players
       @board = board
       @current_player, @other_player = players
+      @move_list = []
     end
 
     def switch_players
@@ -60,18 +61,36 @@ module Chess
       piece = @board.get_cell(origin[0],origin[1]).value
       dest_value = @board.get_cell(dest[0],dest[1]).value
       path_values = get_path_values(piece,origin,dest)
+      last_move = @move_list.last
+
       if (piece != nil) && (piece.color == @current_player.color) &&
          (piece.possible_moves.include? dest) && ((path_values.nil? || path_values.none?)) &&
          ((dest_value == nil) || (dest_value.color != piece.color))
+        if piece.name == "pawn"
+          pawn_move_check(origin, dest, piece, dest_value, last_move)
+        end
         message = "#{piece.color} #{piece.name} moved from #{move[0]} to #{move[1]}"
         if dest_value != nil
           message = message + " and captured #{dest_value.color} #{dest_value.name}"
         end
         @board.set_cell(dest[0], dest[1], piece.class.new(piece.color, [dest[0], dest[1]]))
         @board.set_cell(origin[0], origin[1], nil)
+        @move_list << {name: piece.name, color: piece.color, origin: origin, dest: dest}
         puts " \n________________________\n "
         puts message
       else
+        puts "Not a valid move. Please try again."
+        move_flow
+      end
+    end
+
+    def pawn_move_check(origin, dest, piece, dest_value, last_move)
+      if (last_move != nil && last_move[:name] == 'pawn') && ((origin[0] == last_move[:dest][0] + 1) || (origin[0] == last_move[:dest][0] - 1)) && (last_move[:origin][0] == last_move[:dest][0])
+        if ((piece.color == 'white') && (origin[1] == 3) && (last_move[:origin][1] == 1)) || ((piece.color == 'black') && (origin[1] == 4) && (last_move[:origin][1] == 6))
+          @board.set_cell(last_move[:dest][0], last_move[:dest][1], nil)
+          puts "Captured en passant!"
+        end
+      elsif ((dest[0] == origin[0]) && dest_value != nil) || ((dest[0] != origin[0]) && dest_value.nil?)
         puts "Not a valid move. Please try again."
         move_flow
       end
