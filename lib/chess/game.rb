@@ -1,11 +1,12 @@
 module Chess
   class Game
-    attr_reader :players, :board, :current_player, :other_player, :move_list
+    attr_reader :players, :board, :current_player, :other_player, :move_list, :move
     def initialize(players, board = Board.new)
       @players = players
       @board = board
       @current_player, @other_player = players
       @move_list = []
+      @move = nil
     end
 
     def switch_players
@@ -18,7 +19,7 @@ module Chess
 
     def get_move(move = gets.chomp.downcase)
       if move =~ /\A[abcdefgh]\d\s[abcdefgh]\d\z/
-        move = move.split(' ')
+        move = move.strip.split(' ')
       elsif ["quit", "exit"].include? move
         exit
       else
@@ -45,8 +46,8 @@ module Chess
     def move_flow
       puts ""
       puts move_prompt
-      move = get_move
-      verify_move(move)
+      @move = get_move
+      verify_move(@move)
 
     end
 
@@ -56,43 +57,75 @@ module Chess
     end
 
     def verify_move(move)
+      puts "setting origin"
       origin = human_move_to_coordinate(move[0])
+      puts "setting destination"
       dest = human_move_to_coordinate(move[1])
+      puts "setting piece"
       piece = @board.get_cell(origin[0],origin[1]).value
+      puts "setting dest_value"
       dest_value = @board.get_cell(dest[0],dest[1]).value
+      puts "getting path values"
       path_values = get_path_values(piece,origin,dest)
+      puts "setting last move"
       last_move = @move_list.last
 
       if (piece != nil) && (piece.color == @current_player.color) &&
          (piece.possible_moves.include? dest) && ((path_values.nil? || path_values.none?)) &&
-         ((dest_value == nil) || (dest_value.color != piece.color))
+         ((dest_value == nil) || (dest_value.color != piece.color)) #&& (last_move[:color] != piece.color unless last_move.nil?)
+         all_good = true
         if piece.name == "pawn"
-          pawn_move_check(origin, dest, piece, dest_value, last_move)
+          puts "checking pawn moves"
+          if pawn_move_check(origin, dest, piece, dest_value, last_move) == false
+            all_good = false
+          end
         end
-        message = "#{piece.color} #{piece.name} moved from #{move[0]} to #{move[1]}"
-        if dest_value != nil
-          message = message + " and captured #{dest_value.color} #{dest_value.name}"
+        if all_good == true
+          set_message(piece, move, dest_value)
+          set_cells(piece, origin, dest)
+          set_move_list(piece, origin, dest)
+        else
+          not_valid
         end
-        @board.set_cell(dest[0], dest[1], piece.class.new(piece.color, [dest[0], dest[1]]))
-        @board.set_cell(origin[0], origin[1], nil)
-        @move_list << {name: piece.name, color: piece.color, origin: origin, dest: dest}
-        puts " \n________________________\n "
-        puts message
       else
-        puts "Not a valid move. Please try again."
-        move_flow
+        not_valid
       end
     end
 
+    def set_message(piece, move, dest_value)
+      puts "setting message"
+      message = "#{piece.color} #{piece.name} moved from #{move[0]} to #{move[1]}"
+      if dest_value != nil
+        message = message + " and captured #{dest_value.color} #{dest_value.name}"
+      end
+      puts " \n________________________\n "
+      puts message
+    end
+
+    def set_cells(piece, origin, dest)
+      @board.set_cell(dest[0], dest[1], piece.class.new(piece.color, [dest[0], dest[1]]))
+      @board.set_cell(origin[0], origin[1], nil)
+    end
+
+    def set_move_list(piece, origin, dest)
+      puts "adding move to move list"
+      @move_list << {name: piece.name, color: piece.color, origin: origin, dest: dest}
+    end
+
     def pawn_move_check(origin, dest, piece, dest_value, last_move)
-      if (last_move != nil && last_move[:name] == 'pawn') && ((origin[0] == last_move[:dest][0] + 1) || (origin[0] == last_move[:dest][0] - 1)) && (last_move[:origin][0] == last_move[:dest][0])
+      if (last_move != nil && last_move[:name] == 'pawn') && ((origin[0] == (last_move[:dest][0] + 1)) || (origin[0] == (last_move[:dest][0] - 1))) && (last_move[:origin][0] == last_move[:dest][0])
         if ((piece.color == 'white') && (origin[1] == 3) && (last_move[:origin][1] == 1)) || ((piece.color == 'black') && (origin[1] == 4) && (last_move[:origin][1] == 6))
           @board.set_cell(last_move[:dest][0], last_move[:dest][1], nil)
           puts "Captured en passant!"
+        else
+          puts "failed pawn check 1. starting over move flow"
+          return false
         end
       elsif ((dest[0] == origin[0]) && dest_value != nil) || ((dest[0] != origin[0]) && dest_value.nil?)
-        puts "Not a valid move. Please try again."
-        move_flow
+        puts "failed pawn check 2. starting over move flow"
+        return false
+      else
+        puts "continuing as normal"
       end
     end
 
@@ -105,6 +138,13 @@ module Chess
         end
         path_values
       end
+    end
+
+    def not_valid
+      puts "Not a valid move. Please try again."
+      puts "setting move to nil"
+      @move = nil
+      move_flow
     end
 
     def human_move_to_coordinate(human_move)
