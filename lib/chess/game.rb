@@ -113,13 +113,15 @@ module Chess
     end
 
     def pawn_move_check(origin, dest, piece, dest_value, last_move)
-      if (last_move != nil && last_move[:name] == 'pawn') && ((origin[0] == (last_move[:dest][0] + 1)) || (origin[0] == (last_move[:dest][0] - 1))) && (last_move[:origin][0] == last_move[:dest][0])
-        if ((piece.color == 'white') && (origin[1] == 3) && (last_move[:origin][1] == 1)) || ((piece.color == 'black') && (origin[1] == 4) && (last_move[:origin][1] == 6))
+      if (last_move != nil && last_move[:name] == 'pawn') && (dest[0] != origin[0]) && 
+        ((origin[0] == (last_move[:dest][0] + 1)) || (origin[0] == (last_move[:dest][0] - 1))) &&
+        (last_move[:origin][0] == last_move[:dest][0]) && (last_move[:origin][1] == (1 || 6))
+        if ((piece.color == 'white') && (origin[1] == 3) && (last_move[:origin][1] == 1) && (last_move[:dest][1] == (last_move[:origin][1] + 2))) ||
+          ((piece.color == 'black') && (origin[1] == 4) && (last_move[:origin][1] == 6) && (last_move[:dest][1] == (last_move[:origin][1] - 2)))
           @board.set_cell(last_move[:dest][0], last_move[:dest][1], nil)
           puts "Captured en passant!"
         else
           puts "failed pawn check 1. starting over move flow"
-          return false
         end
       elsif ((dest[0] == origin[0]) && dest_value != nil) || ((dest[0] != origin[0]) && dest_value.nil?)
         puts "failed pawn check 2. starting over move flow"
