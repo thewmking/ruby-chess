@@ -24,6 +24,7 @@ module Chess
         moves << [col + i, row - i] if (0..7).include?(col + i) && (0..7).include?(row - i)
         i += 1
       end
+      puts "possible moves are #{moves}"
       moves
     end
 
@@ -39,6 +40,8 @@ module Chess
           cells << [o_col + i, o_row + j] if (0..7).include?(o_col + i) && (0..7).include?(o_row + j)
           i += 1 if x > 0
           i -= 1 if x < 0
+          j += 1 if y > 0
+          j -= 1 if y < 0
         end
       end
 

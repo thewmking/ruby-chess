@@ -67,7 +67,7 @@ module Chess
       dest_value = @board.get_cell(dest[0],dest[1]).value
       puts "getting path values"
       path_values = get_path_values(piece,origin,dest)
-      puts "setting last move"
+      puts "getting last move"
       last_move = @move_list.last
 
       if (piece != nil) && (piece.color == @current_player.color) &&
@@ -113,7 +113,7 @@ module Chess
     end
 
     def pawn_move_check(origin, dest, piece, dest_value, last_move)
-      if (last_move != nil && last_move[:name] == 'pawn') && (dest[0] != origin[0]) && 
+      if (last_move != nil && last_move[:name] == 'pawn') && (dest[0] != origin[0]) &&
         ((origin[0] == (last_move[:dest][0] + 1)) || (origin[0] == (last_move[:dest][0] - 1))) &&
         (last_move[:origin][0] == last_move[:dest][0]) && (last_move[:origin][1] == (1 || 6))
         if ((piece.color == 'white') && (origin[1] == 3) && (last_move[:origin][1] == 1) && (last_move[:dest][1] == (last_move[:origin][1] + 2))) ||
@@ -138,6 +138,7 @@ module Chess
         dest_path&.each do |cell|
           path_values << @board.get_cell(cell[0],cell[1]).value
         end
+        puts "path values are #{path_values}"
         path_values
       end
     end
