@@ -84,6 +84,9 @@ module Chess
           set_message(piece, move, dest_value)
           set_cells(piece, origin, dest)
           set_move_list(piece, origin, dest)
+          if piece.name == "pawn"
+            check_promotion(piece, dest)
+          end
         else
           not_valid
         end
@@ -110,6 +113,21 @@ module Chess
     def set_move_list(piece, origin, dest)
       puts "adding move to move list"
       @move_list << {name: piece.name, color: piece.color, origin: origin, dest: dest}
+    end
+
+    def check_promotion(piece, dest)
+      if (piece.color == "white" && dest[1] == 0) || (piece.color == "black" && dest[1] == 7)
+        message = "PROMOTION TIME!\nYour pawn made it to its eighth rank!\nChoose queen, bishop, knight, or rook."
+        puts message
+        input = gets.chomp.strip.downcase.capitalize
+        if ["Queen", "Bishop", "Knight", "Rook"].include? input
+          klass = Object.const_get('Chess::' + input)
+          @board.set_cell(dest[0], dest[1], klass.new(piece.color, [dest[0], dest[1]]))
+          puts "Promoted #{piece.color} #{piece.name} to #{input.capitalize}"
+        else
+          check_promotion(piece, dest)
+        end
+      end
     end
 
     def pawn_move_check(origin, dest, piece, dest_value, last_move)
