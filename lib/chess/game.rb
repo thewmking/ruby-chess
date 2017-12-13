@@ -26,6 +26,15 @@ module Chess
         board.formatted_grid
         move_prompt
         get_move(move = gets.chomp.downcase)
+      elsif move == "castle"
+        puts "Castle kingside or queenside?"
+        side = gets.chomp.downcase.strip
+        if side =~ /\A(queenside)|(kingside)\z/
+          move = "#{move} #{side}"
+        else
+          puts "Please use valid input"
+          get_move(move = gets.chomp.downcase)
+        end
       else
         puts "Please use valid coordinates. Like this: a3 b5"
         get_move(move = gets.chomp.downcase)
@@ -54,13 +63,73 @@ module Chess
         puts "#{current_player.name}: \nYour king is in check. You must get your king out of check with your next move."
       end
       @move = get_move
-      verify_move(@move)
-
+      if @move.include? "castle"
+        if king_check > 0
+          puts "You may not castle while your king is in check"
+          not_valid
+        else
+          verify_castle(@move)
+        end
+      else
+        verify_move(@move)
+      end
     end
 
     def game_over_message
       return "#{current_player.name} won!" if board.game_over == :winner
       return "The game ended in a tie" if board.game_over == :draw
+    end
+
+    def verify_castle(move)
+      color = @current_player.color
+      side = move.split(" ").last
+      if color == "black"
+        king = @board.get_cell(4,0).value
+        if side == "queenside"
+          rook = @board.get_cell(0,0).value
+          king_dest, king_path = [2,0], [[3,0], [2,0]]
+          rook_dest, rook_path = [3,0], [[1,0], [2,0], [3,0]]
+        elsif side == "kingside"
+          rook = @board.get_cell(7,0).value
+          king_dest, king_path = [6,0], [[5,0], [6,0]]
+          rook_dest, rook_path = [5,0], [[6,0], [5,0]]
+        end
+      else # color = white
+        king = @board.get_cell(4,7).value
+        if side == "queenside"
+          rook = @board.get_cell(0,7).value
+          king_dest, king_path = [2,7], [[3,7], [2,7]]
+          rook_dest, rook_path = [3,7], [[1,7], [2,7]]
+        elsif side == "kingside"
+          rook = @board.get_cell(7,6).value
+          king_dest, king_path = [6,7], [[5,7], [6,7]]
+          rook_dest, rook_path = [5,7], [6,7]
+        end
+      end
+      # if king & rook are present, accurate pieces, and have not moved
+      if (king != nil) && (king.name == "king") && (king.color == color) &&
+        (rook != nil) && (rook.name == "rook") && (rook.color == color) &&
+        (check_move_list(king) == false) && (check_move_list(rook) == false)
+        all_good = true
+
+        #check if king & rook paths are empty
+        path_values = king_path + rook_path
+        path_values.each do |cell|
+          all_good = false if @board.get_cell(cell[0], cell[1]).value != nil
+        end
+        #check king and path for check
+        king_path.each do |cell|
+          all_good = false if check_check(king, king.position, cell) > 0
+        end
+      end
+      if all_good == true
+        #set king and rook to new cells
+        set_cells(king, king.position, king_dest)
+        set_cells(rook, rook.position, rook_dest)
+        puts "#{current_player.name} castled #{side}"
+      else
+        not_valid
+      end
     end
 
     def verify_move(move)
@@ -158,6 +227,14 @@ module Chess
       moves
     end
 
+    def check_move_list(piece)
+      response = false
+      @move_list.each do |move|
+        response = true if move[:id] == piece.id
+      end
+      response
+    end
+
     def set_message(piece, move, dest_value)
       puts "setting message"
       message = "#{piece.color} #{piece.name} moved from #{move[0]} to #{move[1]}"
@@ -175,13 +252,13 @@ module Chess
       else
         puts "moving #{piece.color} #{piece.name} from #{origin} to #{dest} in clone board"
       end
-      current_board.set_cell(dest[0], dest[1], piece.class.new(piece.color, [dest[0], dest[1]]))
+      current_board.set_cell(dest[0], dest[1], piece.class.new(piece.color, [dest[0], dest[1]], piece.id))
       current_board.set_cell(origin[0], origin[1], nil)
     end
 
     def set_move_list(piece, origin, dest)
       puts "adding move to move list"
-      @move_list << {name: piece.name, color: piece.color, origin: origin, dest: dest}
+      @move_list << {name: piece.name, color: piece.color, origin: origin, dest: dest, id: piece.id}
     end
 
     def check_promotion(piece, dest)
@@ -191,7 +268,7 @@ module Chess
         input = gets.chomp.strip.downcase.capitalize
         if ["Queen", "Bishop", "Knight", "Rook"].include? input
           klass = Object.const_get('Chess::' + input)
-          @board.set_cell(dest[0], dest[1], klass.new(piece.color, [dest[0], dest[1]]))
+          @board.set_cell(dest[0], dest[1], klass.new(piece.color, [dest[0], dest[1]], piece.id))
           puts "Promoted #{piece.color} #{piece.name} to #{input.capitalize}"
         else
           check_promotion(piece, dest)
