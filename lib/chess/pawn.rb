@@ -1,9 +1,10 @@
 module Chess
   class Pawn < Piece
 
-    def initialize(color, position=nil)
-      super(color)
+    def initialize(color, position, id)
+      @color = color
       @position = position
+      @id = id
       if @color == "black"
         @symbol = "\u265F"
       else

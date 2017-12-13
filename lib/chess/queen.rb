@@ -1,8 +1,9 @@
 module Chess
   class Queen < Piece
-    def initialize(color, position=nil)
-      super(color)
+    def initialize(color, position, id)
+      @color = color
       @position = position
+      @id = id
       if @color == "black"
         @symbol = "\u265B"
       else
