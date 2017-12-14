@@ -46,12 +46,7 @@ module Chess
       while true
         board.formatted_grid
         move_flow
-        if board.game_over
-          puts game_over_message
-          board.formatted_grid
-          return
-        else
-          switch_players
+        switch_players
         end
       end
     end
@@ -60,7 +55,12 @@ module Chess
       puts ""
       puts move_prompt
       if king_check > 0
-        puts "#{current_player.name}: \nYour king is in check. You must get your king out of check with your next move."
+        if check_checkmate == true
+          puts "Checkmate. Game over."
+          exit
+        else
+          puts "#{current_player.name}: \nYour king is in check. You must get your king out of check with your next move."
+        end
       end
       @move = get_move
       if @move.include? "castle"
@@ -78,6 +78,17 @@ module Chess
     def game_over_message
       return "#{current_player.name} won!" if board.game_over == :winner
       return "The game ended in a tie" if board.game_over == :draw
+    end
+
+    def check_checkmate
+      moves = get_all_moves(@current_player)
+      move_count = moves.count
+      moves.each do |move|
+        move_count -= 1 if check_check(move[:piece], move[:piece].position, move[:dest]) > 0
+        puts "available move: #{move}" if check_check(move[:piece], move[:piece].position, move[:dest]) == 0
+      end
+      puts move_count
+      return true if move_count <= 0
     end
 
     def verify_castle(move)
@@ -187,8 +198,8 @@ module Chess
     def king_check(current_board=nil)
       current_board ||= @board
       threat_count = 0
-      all_moves = get_all_opponent_moves(current_board)
-      all_moves.each do |move|
+      opponent_moves = get_all_moves(@other_player, current_board)
+      opponent_moves.each do |move|
         threatened_cell = current_board.get_cell(move[:dest][0],move[:dest][1]).value
         if (threatened_cell != nil) && (threatened_cell.name == "king") && (threatened_cell.color == @current_player.color)
           threat_count +=1
@@ -200,13 +211,13 @@ module Chess
       threat_count
     end
 
-    def get_all_opponent_moves(current_board=nil)
+    def get_all_moves(player, current_board=nil)
       current_board ||= @board
-      # get all possible moves from opponent pieces
+      # get all possible moves from given player's pieces
       moves = []
       current_board.grid.each do |row|
         row.each do |cell|
-          if (cell.value != nil) && (cell.value.color != @current_player.color)
+          if (cell.value != nil) && (cell.value.color == player.color)
             cell.value.possible_moves.each do |move|
               piece = cell.value
               dest_value = current_board.get_cell(move[0],move[1]).value
@@ -216,9 +227,17 @@ module Chess
                   moves << {dest: move, piece: piece}
                 end
               elsif ["queen", "rook", "bishop"].include? piece.name
-                moves << {dest: move, piece: piece} if (path_values.nil? || path_values.none?)
+                if dest_value.nil?
+                  moves << {dest: move, piece: piece} if (path_values.nil? || path_values.none?)
+                else
+                  moves << {dest: move, piece: piece} if dest_value.color != player.color && (path_values.nil? || path_values.none?)
+                end
               else
-                moves << {dest: move, piece: piece}
+                if dest_value.nil?
+                  moves << {dest: move, piece: piece}
+                else
+                  moves << {dest: move, piece: piece} if dest_value.color != player.color
+                end
               end
             end
           end
