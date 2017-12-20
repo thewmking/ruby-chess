@@ -7,6 +7,7 @@ module Chess
       @current_player, @other_player = players
       @move_list = []
       @move = nil
+      puts "The game has begun!"
     end
 
     def switch_players
@@ -35,6 +36,8 @@ module Chess
           puts "Please use valid input"
           get_move(move = gets.chomp.downcase)
         end
+      elsif move == "save"
+        save
       else
         puts "Please use valid coordinates. Like this: a3 b5"
         get_move(move = gets.chomp.downcase)
@@ -42,12 +45,10 @@ module Chess
     end
 
     def play
-      puts "The game has begun!"
       while true
         board.formatted_grid
         move_flow
         switch_players
-        end
       end
     end
 
@@ -73,6 +74,17 @@ module Chess
       else
         verify_move(@move)
       end
+    end
+
+    def save
+      Dir.mkdir('save') unless Dir.exists?('save')
+      puts "Enter a name for your save file"
+      save_name = gets.chomp.downcase.strip
+      File.open("./save/#{save_name}.yml", 'w') do |file|
+        file.write(YAML::dump(self))
+      end
+      puts "Game saved"
+      exit
     end
 
     def game_over_message
