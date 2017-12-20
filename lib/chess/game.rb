@@ -24,8 +24,7 @@ module Chess
       elsif ["quit", "exit"].include? move
         exit
       elsif move == "board"
-        board.formatted_grid
-        move_prompt
+        @board.formatted_grid
         get_move(move = gets.chomp.downcase)
       elsif move == "castle"
         puts "Castle kingside or queenside?"
@@ -62,6 +61,9 @@ module Chess
         else
           puts "#{current_player.name}: \nYour king is in check. You must get your king out of check with your next move."
         end
+      elsif draw_check == true
+        puts "#{current_player.name} has no available moves. The game has ended in a draw."
+        exit
       end
       @move = get_move
       if @move.include? "castle"
@@ -92,12 +94,16 @@ module Chess
       return "The game ended in a tie" if board.game_over == :draw
     end
 
+    def draw_check
+      return true if check_checkmate == true
+    end
+
     def check_checkmate
       moves = get_all_moves(@current_player)
       move_count = moves.count
       moves.each do |move|
         move_count -= 1 if check_check(move[:piece], move[:piece].position, move[:dest]) > 0
-        puts "available move: #{move}" if check_check(move[:piece], move[:piece].position, move[:dest]) == 0
+        # puts "available move: #{move}" if check_check(move[:piece], move[:piece].position, move[:dest]) == 0
       end
       puts move_count
       return true if move_count <= 0
@@ -235,7 +241,7 @@ module Chess
               dest_value = current_board.get_cell(move[0],move[1]).value
               path_values = get_path_values(piece, piece.position, move, current_board)
               if piece.name == "pawn"
-                if pawn_move_check(piece.position, move, piece, dest_value, @move_list.last) != false
+                if pawn_move_check(piece.position, move, piece, dest_value, @move_list.last, current_board) != false
                   moves << {dest: move, piece: piece}
                 end
               elsif ["queen", "rook", "bishop"].include? piece.name
@@ -279,9 +285,9 @@ module Chess
     def set_cells(piece, origin, dest, current_board=nil)
       current_board ||= @board
       if current_board == @board
-        puts "moving #{piece.color} #{piece.name} from #{origin} to #{dest} in official board"
+        # puts "moving #{piece.color} #{piece.name} from #{origin} to #{dest} in official board"
       else
-        puts "moving #{piece.color} #{piece.name} from #{origin} to #{dest} in clone board"
+        # puts "moving #{piece.color} #{piece.name} from #{origin} to #{dest} in clone board"
       end
       current_board.set_cell(dest[0], dest[1], piece.class.new(piece.color, [dest[0], dest[1]], piece.id))
       current_board.set_cell(origin[0], origin[1], nil)
@@ -307,13 +313,14 @@ module Chess
       end
     end
 
-    def pawn_move_check(origin, dest, piece, dest_value, last_move)
+    def pawn_move_check(origin, dest, piece, dest_value, last_move, current_board=nil)
+      current_board ||= @board
       if (last_move != nil && last_move[:name] == 'pawn') && (dest[0] != origin[0]) &&
         ((origin[0] == (last_move[:dest][0] + 1)) || (origin[0] == (last_move[:dest][0] - 1))) &&
         (last_move[:origin][0] == last_move[:dest][0]) && (last_move[:origin][1] == (1 || 6))
         if ((piece.color == 'white') && (origin[1] == 3) && (last_move[:origin][1] == 1) && (last_move[:dest][1] == (last_move[:origin][1] + 2))) ||
           ((piece.color == 'black') && (origin[1] == 4) && (last_move[:origin][1] == 6) && (last_move[:dest][1] == (last_move[:origin][1] - 2)))
-          @board.set_cell(last_move[:dest][0], last_move[:dest][1], nil)
+          current_board.set_cell(last_move[:dest][0], last_move[:dest][1], nil)
           puts "Captured en passant!"
         end
       elsif ((dest[0] == origin[0]) && dest_value != nil) || ((dest[0] != origin[0]) && dest_value.nil?)
