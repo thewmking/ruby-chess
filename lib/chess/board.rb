@@ -65,23 +65,10 @@ module Chess
       set_cell(7, 6, Pawn.new("white", [7,6], "h2"))
     end
 
-    def game_over
-      return :winner if winner?
-      return :draw if draw?
-      false
-    end
-
     private
 
     def default_grid
       Array.new(8) { Array.new(8) {Cell.new}}
     end
-
-    def draw?
-    end
-
-    def winner?
-    end
-
   end
 end
